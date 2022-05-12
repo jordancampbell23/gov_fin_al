@@ -1,0 +1,59 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(stringr)
+```
+
+
+Object `data_from_dbsite.RDS` is generated from the ACFR PostgreSQL database. 
+```{r}
+# May 11, 2022
+acfrs <- readRDS("data_from_dbsite.RDS")
+
+
+states_47 <- acfrs %>% 
+  filter(category == "General Purpose") %>% 
+  filter(name != "State of Yap" & name != "State of Kosrae") %>%  # take this out? 
+  filter(str_detect(name, "(State of )") | name == "Government of the District of Columbia") %>% 
+  mutate(liab_rev_ratio = total_liabilities/revenues) %>% 
+  arrange(name) %>% select(state, name, total_liabilities, revenues)
+                   
+states_47 %>% 
+  mutate(state_name = str_remove_all(name, "State of ")) -> test
+
+# above only give 48 states. Check the differences with list of states
+setdiff(test$state_name, state.name)
+setdiff(state.name, test$state_name)
+```
+
+```{r}
+# need to get 4 more: [1] "Kentucky"      "Massachusetts" "Pennsylvania"  "Virginia" 
+states_4 <- acfrs %>% 
+  filter(category == "General Purpose") %>% 
+  filter(str_detect(name, "Commonwealth of")) %>% 
+  mutate(liab_rev_ratio = total_liabilities/revenues) %>% 
+  arrange(name) %>% select(state, name, total_liabilities, revenues)
+
+```
+
+
+```{r}
+# Now have 50 states and DC 
+states <- rbind(states_47, states_4) 
+```
+
+
+
+```{r}
+#testing
+#Jordan used this to display the map. Marc sent the file to Jordan Feb 3
+rio::import(here::here("data", "State Liability and Revenue Data 2020 v1.xlsx")) %>% filter(Entity == "State of California") %>% select(Entity, Revenues)
+# it is different from the current one on data base
+acfrs %>% filter(name == "State of California") %>% select(Entity, Revenues)
+```
+
