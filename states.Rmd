@@ -1,5 +1,5 @@
 ---
-title: "Data for mapping"
+title: "States Data for Mapping"
 output: html_document
 ---
 
@@ -9,11 +9,11 @@ library(dplyr)
 library(stringr)
 ```
 
-
+# ACFRs data from Database
 Object `data_from_dbsite.RDS` is generated from the ACFR PostgreSQL database. 
 ```{r}
 # May 11, 2022
-acfrs <- readRDS("data_from_dbsite.RDS")
+acfrs <- readRDS("data/data_from_dbsite.RDS")
 
 
 states_47 <- acfrs %>% 
@@ -30,6 +30,7 @@ states_47 %>%
 setdiff(test$state_name, state.name)
 setdiff(state.name, test$state_name)
 ```
+
 
 ```{r}
 # need to get 4 more: [1] "Kentucky"      "Massachusetts" "Pennsylvania"  "Virginia" 
@@ -48,6 +49,7 @@ states_4 <- acfrs %>%
 states_51 <- rbind(states_47, states_4) %>% select(-state) %>% 
   rename(state = name, 
          revenue = revenues) %>% 
+
   
   #clean state names to match with those names in census population data 
   mutate(state = str_remove(state, "State of "),
@@ -56,9 +58,11 @@ states_51 <- rbind(states_47, states_4) %>% select(-state) %>%
         
 ```
 
+# Population data from Census
+
 ```{r}
 #https://www.census.gov/programs-surveys/popest/technical-documentation/research/evaluation-estimates/2020-evaluation-estimates/2010s-state-detail.html
-population <- rio::import("states_population2020_census.xlsx", skip = 8) %>% select(1:2) %>% 
+population <- rio::import("data/states_population2020_census.xlsx", skip = 8) %>% select(1:2) %>% 
   rename(state = West,
          population = "78654756") %>% 
   mutate(state = str_remove(state, ".")) %>% slice(1:51)
