@@ -1,0 +1,32 @@
+---
+title: "counties"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+county_pop_census_acfrs <- readRDS("data/county_pop_census_acfrs.RDS")
+
+# Counties to map
+counties <- county_pop_census_acfrs %>% 
+  mutate(lib_rev_ratio = (total_liabilities/revenues)*100,
+         percapita = total_liabilities/population) %>% 
+  
+  #rename cols to match Jordan's original files to display on map
+  rename(FIPS = id.y, 
+         state_abv = state.abb,  
+            state = state.name,
+         name = county,
+         revenue = revenues
+         ) %>%
+  
+  arrange(desc(population)) %>% 
+  select(FIPS, state, name, population, total_liabilities, revenue, lib_rev_ratio, percapita, state_abv) %>% arrange(desc(population)) 
+
+write.csv(counties, "counties.csv")
+
+```
+

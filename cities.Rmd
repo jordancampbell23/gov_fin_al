@@ -1,0 +1,47 @@
+---
+title: "cities"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+acfrs_city_pop_added_char <- readRDS("acfrs_city_pop_added_char.RDS")
+
+# Top100 for Jordan to map, rename col to match Jordan's original files 
+
+cities_acfrs_pop_formap <- acfrs_city_pop_added_char %>% 
+  rename(entity = name,
+         state_abv = state.abb, 
+         state = state.name, 
+         city = city_town, 
+         ) %>% 
+  
+  mutate(city = str_remove(city, " city"), 
+         city = str_remove(city, " City")) %>% 
+  mutate(city = ifelse(city == "Indianapolis (balance)", "Indianapolis", city)) %>% 
+  mutate(city = ifelse(city == "Lexington-Fayette urban county", "Lexington", city)) %>% 
+  mutate(city = ifelse(city == "Anchorage municipality", "Anchorage", city)) %>% 
+  mutate(city = ifelse(city == "Gilbert town", "Gilbert", city)) %>% 
+  
+  
+
+  mutate(lib_rev_ratio = (round(total_liabilities/revenues, 4))*100) %>% 
+  select(state_abv, state, city, total_liabilities, revenues, lib_rev_ratio, population) %>% arrange(desc(population)) %>% slice(1:100) 
+
+# getting lat, long from Jordan's file: 
+top100_cities_latlong <- read_csv("data/cities_lat_long.csv") %>% select(state_abv, city, lat, long) %>% 
+  mutate(city = ifelse(city == "Government of the District of Columbia", "Washington", city),
+         city = str_remove(city, " City")) 
+  
+  
+# top 100 cities
+
+cities <- left_join(cities_acfrs_pop_formap, top100_cities_latlong)
+write_csv(cities, "cities.csv")
+```
+```
+
