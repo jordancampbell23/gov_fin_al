@@ -1,5 +1,5 @@
 ---
-title: "Untitled"
+title: "Data for mapping"
 output: html_document
 ---
 
@@ -20,13 +20,13 @@ states_47 <- acfrs %>%
   filter(category == "General Purpose") %>% 
   filter(name != "State of Yap" & name != "State of Kosrae") %>%  # take this out? 
   filter(str_detect(name, "(State of )") | name == "Government of the District of Columbia") %>% 
-  mutate(liab_rev_ratio = total_liabilities/revenues) %>% 
-  arrange(name) %>% select(state, name, total_liabilities, revenues)
-                   
+  mutate(lib_rev_ratio = (total_liabilities/revenues)*100) %>% 
+  arrange(name) %>% select(state, name, total_liabilities, revenues, lib_rev_ratio)
+
+
+# above only give 47 states. Check the differences with list of states                   
 states_47 %>% 
   mutate(state_name = str_remove_all(name, "State of ")) -> test
-
-# above only give 48 states. Check the differences with list of states
 setdiff(test$state_name, state.name)
 setdiff(state.name, test$state_name)
 ```
@@ -36,24 +36,43 @@ setdiff(state.name, test$state_name)
 states_4 <- acfrs %>% 
   filter(category == "General Purpose") %>% 
   filter(str_detect(name, "Commonwealth of")) %>% 
-  mutate(liab_rev_ratio = total_liabilities/revenues) %>% 
-  arrange(name) %>% select(state, name, total_liabilities, revenues)
+  mutate(lib_rev_ratio = (total_liabilities/revenues)*100) %>% 
+  arrange(name) %>% select(state, name, total_liabilities, revenues, lib_rev_ratio)
 
 ```
 
 
 ```{r}
 # Now have 50 states and DC 
-states <- rbind(states_47, states_4) 
+# need to change colnames to be identical with Jordan's original files --> display on map 
+states_51 <- rbind(states_47, states_4) %>% select(-state) %>% 
+  rename(state = name, 
+         revenue = revenues) %>% 
+  
+  #clean state names to match with those names in census population data 
+  mutate(state = str_remove(state, "State of "),
+        state = str_remove(state, "Commonwealth of "),
+        state = str_remove(state, "Government of the "))
+        
 ```
 
+```{r}
+#https://www.census.gov/programs-surveys/popest/technical-documentation/research/evaluation-estimates/2020-evaluation-estimates/2010s-state-detail.html
+population <- rio::import("states_population2020_census.xlsx", skip = 8) %>% select(1:2) %>% 
+  rename(state = West,
+         population = "78654756") %>% 
+  mutate(state = str_remove(state, ".")) %>% slice(1:51)
+```
 
 
 ```{r}
-#testing
-#Jordan used this to display the map. Marc sent the file to Jordan Feb 3
-rio::import(here::here("data", "State Liability and Revenue Data 2020 v1.xlsx")) %>% filter(Entity == "State of California") %>% select(Entity, Revenues)
-# it is different from the current one on data base
-acfrs %>% filter(name == "State of California") %>% select(Entity, Revenues)
+states <- left_join(states_51, population) %>% 
+  mutate(per_capita = total_liabilities/population) %>% 
+  arrange(state)
+
+write.csv(states, "states.csv")
 ```
+
+
+
 
