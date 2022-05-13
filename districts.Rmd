@@ -1,0 +1,32 @@
+---
+title: "Untitled"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+```
+
+```{r}
+matched_acfrs_nces_sd <- readRDS("data/matched_acfrs_nces_sd.RDS")
+
+top100_districts <- matched_acfrs_nces_sd %>% arrange(desc(student)) %>% 
+  filter(state != "PR") %>% 
+  slice(1:100) %>% 
+  rename(district = acfrs_original_name) %>% 
+    mutate(lib_rev_ratio = (total_liabilities/revenues)*100) %>% 
+    select(state, district, id,total_liabilities, revenues, lib_rev_ratio )
+```
+
+```{r}
+# getting lat, long from Jordan's file (original file put on github repo gov_fin_al): 
+districts_latlong <- read.csv("data/districts_lat_long.csv") %>% select(state, id, lat, lon)
+```
+
+```{r}
+districts <- left_join(top100_districts, districts_latlong)
+
+write.csv(districts, "districts.csv")
+```
+
