@@ -6,6 +6,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 library(dplyr)
+library(stringr)
 ```
 
 ```{r}
@@ -17,15 +18,23 @@ top100_districts <- matched_acfrs_nces_sd %>% arrange(desc(student)) %>%
   rename(district = acfrs_original_name) %>% 
     mutate(lib_rev_ratio = (total_liabilities/revenues)*100) %>% 
     select(state, district, id,total_liabilities, revenues, lib_rev_ratio )
+
 ```
 
 ```{r}
 # getting lat, long from Jordan's file (original file put on github repo gov_fin_al): 
-districts_latlong <- read.csv("data/districts_lat_long.csv") %>% select(state, id, lat, lon)
+districts_latlong <- read.csv("data/districts_lat_long.csv") %>% select(state, id, lat, lon) 
+
 ```
 
 ```{r}
-districts <- left_join(top100_districts, districts_latlong)
+districts <- left_join(top100_districts, districts_latlong) %>% 
+  
+  # quick and dirty way to add lat, long of Chicago IL
+  mutate(lat = ifelse(state == "IL", 41.881832, lat),
+         lon = ifelse(state == "IL", -87.623177, lon))
+
+
 
 write.csv(districts, "districts.csv")
 ```
