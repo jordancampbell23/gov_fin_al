@@ -21,7 +21,8 @@ cities_acfrs_pop_formap <- acfrs_city_pop_added_char %>%
          state = state.name, 
          city = city_town, 
          ) %>% 
-  
+
+  # Fixing some names  
   mutate(city = str_remove(city, " city"), 
          city = str_remove(city, " City")) %>% 
   mutate(city = ifelse(city == "Indianapolis (balance)", "Indianapolis", city)) %>% 
@@ -30,22 +31,27 @@ cities_acfrs_pop_formap <- acfrs_city_pop_added_char %>%
   mutate(city = ifelse(city == "Gilbert town", "Gilbert", city)) %>% 
   
   
-
   mutate(lib_rev_ratio = (round(total_liabilities/revenues, 4))*100) %>% 
   select(state_abv, state, city, total_liabilities, revenues, lib_rev_ratio, population) %>% arrange(desc(population)) %>% slice(1:100) 
 
+
+```
+
+```{r}
 # getting lat, long from Jordan's file (original file put on github repo gov_fin_al): 
 top100_cities_latlong <- read.csv("data/cities_lat_long.csv") %>% select(state_abv, city, lat, long) %>% 
   mutate(city = ifelse(city == "Government of the District of Columbia", "Washington", city),
          city = str_remove(city, " City")) 
   
-  
 # top 100 cities
 
 cities <- left_join(cities_acfrs_pop_formap, top100_cities_latlong)
+
+```
+
+```{r}
+
 write.csv(cities, "cities.csv")
-
-
 ```
-```
+
 
