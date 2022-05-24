@@ -5,6 +5,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(stringr)
 ```
 
 ```{r}
@@ -29,29 +31,28 @@ counties_1 <- county_pop_census_acfrs %>%
 
 ```
 
-# Special cases: Combined city/ city government
+# Special cases: Combined city/ county government
 ```{r}
-# get from list of cities
+# Some cities are counties --> get from list of cities
 cities <- read.csv("cities.csv") %>% 
 select(-c(lat, long, X)) %>% rename(name = city, # to match with colnames in counties file
                                  revenue = revenues) 
 
-##Jacksonville city, FL  = Duval County, FL # copy the data for Jacksonville, FL to a new row in the County data for Duval County, FL
+##Jacksonville city, FL  = Duval County, FL # copy the data for Jacksonville city, FL to a new row in the County data for Duval County, FL
 
 jacksonville_duval <- cities %>% 
 filter(state_abv == "FL" & name == "Jacksonville") %>% 
-mutate(name = ifelse(name == "Jacksonville", "Duval County", name),
-         percapita = total_liabilities/population) %>% 
-
-  # adding FIPS code manually
-  mutate(FIPS = "12031") # got it here https://www.census.gov/quickfacts/fact/table/duvalcountyflorida,US/PST045221
-
+mutate(percapita = total_liabilities/population,
+ # adding FIPS code manually
+      FIPS = "12031", # got it here https://www.census.gov/quickfacts/fact/table/duvalcountyflorida,US/PST045221
+      name = ifelse(name == "Jacksonville", "Duval County", name))
 
 ## San Francisco city, CA = San Francisco County, CA
 sanfrancisco <- cities %>% 
 filter(state_abv == "CA" & name == "San Francisco") %>% 
   mutate(percapita = total_liabilities/population, 
-         FIPS = "06075") 
+         FIPS = "06075",
+         name = ifelse(name == "San Francisco", "San Francisco County", name))
 
 ```
 
@@ -61,7 +62,8 @@ filter(state_abv == "CA" & name == "San Francisco") %>%
 denver <- cities  %>% 
 filter(state_abv == "CO" & name == "Denver") %>% 
   mutate(percapita = total_liabilities/population, 
-         FIPS = "08031") 
+         FIPS = "08031", 
+         name = ifelse(name == "Denver", "Denver County", name)) 
 
 ```
 
@@ -72,7 +74,8 @@ filter(state_abv == "CO" & name == "Denver") %>%
 philadelphia <- cities %>% 
 filter(state_abv == "PA" & name == "Philadelphia") %>% 
   mutate(percapita = total_liabilities/population, 
-         FIPS = "42101")
+         FIPS = "42101", 
+         name = ifelse(name == "Philadelphia", "Philadelphia County", name))
 ```
 
 ```{r}
@@ -85,36 +88,6 @@ filter(state_abv == "IN" & name == "Indianapolis") %>%
 ```
 
 
-
-```{r}
-#Nashville, TN and Davidson County, TN
-cities %>% filter(str_detect(name, "Nashville"))
-# --> Not in list of 100 cities
-
-acfrs_city_pop_added_char <- readRDS("data/acfrs_city_pop_added_char.RDS")
-acfrs_city_pop_added_char %>% filter(str_detect(name, "Nashville" ))
-#--> No Nashville city TN in the list of matched city and census population 
-
-# check in database for Nashville city
-acfrs <- readRDS("data/data_from_dbsite.RDS")
-
-acfrs %>% filter(state == "TN") %>% filter(str_detect(name, "Nashville")) -> nashville
-
-write.csv(nashville, "nashville.csv") # ask Marc: --> which one of these is Nashville city?
-
-
-```
-
-```{r}
-# check other cases that Marc noted
-#Louisville-Jefferson County, Kentucky --> FIPS 2148006
-cities %>% filter(str_detect(name, "Jefferson")) # --> No Jefferson in list of top 100 cities 
-
-acfrs_city_pop_added_char %>% 
-  filter(state.name == "Kentucky") %>% 
-  filter(str_detect(name, "Jefferson" )) # Jeffersontown city? 
-```
-
 ```{r}
 counties <- rbind(counties_1, 
                   jacksonville_duval, 
@@ -123,7 +96,19 @@ counties <- rbind(counties_1,
                   philadelphia,
                   indianapolis_marion) 
 
-write.csv(counties, "counties.csv")
 
+#re check all special cases: 
+counties  %>% 
+  filter(name == "Duval County" |
+                      name == "San Francisco County" |
+                      name == "Denver County" |
+                      name == "Philadelphia County" |
+                      name == "Indianapolis-Marion County" |
+                      name == "Louisville-Jefferson County" |
+                      name == "Nashville-Davidson County"
+                      ) %>% 
+  filter(state != "Texas")
+
+write.csv(counties, "counties.csv")
 ```
 
