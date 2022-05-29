@@ -15,7 +15,8 @@ county_pop_census_acfrs <- readRDS("data/county_pop_census_acfrs.RDS")
 # To map
 counties_1 <- county_pop_census_acfrs %>% 
   mutate(lib_rev_ratio = (total_liabilities/revenues)*100,
-         percapita = total_liabilities/population) %>% 
+         percapita = total_liabilities/population, 
+         county = str_to_title(county)) %>% 
   
   #rename cols to match Jordan's original files to display on map
   rename(FIPS = id.y, 
@@ -24,6 +25,7 @@ counties_1 <- county_pop_census_acfrs %>%
          name = county,
          revenue = revenues
          ) %>%
+  
   
   mutate(FIPS = str_sub(FIPS, -5, -1)) %>% 
   arrange(desc(population)) %>% 
@@ -108,6 +110,11 @@ counties  %>%
                       name == "Nashville-Davidson County"
                       ) %>% 
   filter(state != "Texas")
+
+# check other cases: Kaua‘i County, HI; Dekalb County, AL; Desoto County, FL; St Francis County, AR
+counties %>% 
+  filter(str_detect(name, "Kaua‘i|Dekalb|Desoto|Francis"))
+
 
 write.csv(counties, "counties.csv")
 ```
