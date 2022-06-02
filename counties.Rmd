@@ -113,7 +113,7 @@ counties  %>%
 
 # check other cases: Kaua‘i County, HI; Dekalb County, AL; Desoto County, FL; St Francis County, AR
 counties %>% 
-  filter(str_detect(name, "Kaua‘i|Dekalb|Desoto|Francis"))
+  filter(str_detect(name, "Kauai|Dekalb|Desoto|Francis"))
 
 
 write.csv(counties, "counties.csv")
