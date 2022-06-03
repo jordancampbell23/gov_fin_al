@@ -115,6 +115,10 @@ counties  %>%
 counties %>% 
   filter(str_detect(name, "Kauai|Dekalb|Desoto|Francis"))
 
+counties %>% filter(state_abv == "KY" |state_abv == "TN") %>% 
+  filter(name == "Jefferson County" | 
+           name == "Davidson County")
+
 
 write.csv(counties, "counties.csv")
 ```
