@@ -44,19 +44,26 @@ top100_cities_latlong <- read.csv("data/cities_lat_long.csv") %>% select(state_a
   mutate(city = ifelse(city == "Government of the District of Columbia", "Washington", city),
          city = str_remove(city, " City")) 
 
-# top 100 cities
+# get more lat, long from maps package
 
-cities <- left_join(cities_acfrs_pop_formap, top100_cities_latlong) 
-
-cities %>% filter(city == "Washington")
-
-```
-```{r}
 cities_lat_long <- us.cities %>% 
   rename(state_abv = country.etc) %>% 
   mutate(city = str_sub(name, 1, -4)) %>% select(state_abv, city, lat, long) %>% 
   filter(state_abv %in% c("CA", "GA", "MA")) %>% 
   filter(str_detect(city, "Fontana|Columbus|Worcester"))
+
+# top 100 cities
+
+cities <- left_join(cities_acfrs_pop_formap, top100_cities_latlong) %>% 
+  mutate(lat = ifelse(city == "Fontana", 34.10, lat),
+        long = ifelse(city == "Fontana", -117.46, long),
+        
+        lat = ifelse(city == "Columbus", 32.51, lat),
+        long = ifelse(city == "Columbus", -84.87, long),
+        
+        lat = ifelse(city == "Worcester", 42.27, lat),
+        long = ifelse(city == "Worcester", -71.81, long))
+      
 
 ```
 
