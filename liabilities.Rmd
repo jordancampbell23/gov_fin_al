@@ -80,7 +80,7 @@ states <- readRDS("states_51.RDS") %>% select(state, total_liabilities) %>%
 # Generate chart 1
 ```{r}
 
-others <- (tot - states - cities_towns - counties - special_district - school_district )
+others_state_local <- (tot - states - cities_towns - counties - special_district - school_district )
 
 label <- c("states", "cities_towns", "counties", "special_district", "school_district", "others")
 value <- c(2530983274594, 1239179537814, 591455603771, 1130012238813, 1175789650248, 355368008704)
@@ -88,12 +88,11 @@ percent <- round(value/sum(value)*100,1)
 label <- paste(label, percent)
 label <- paste(label, "%", sep="")
 
-pie1 <- data.frame(label, value)
-
-write.csv(pie1, "pie1.csv")
+liabilities_state_local <- data.frame(label, value)
 
 pie(value, labels = label, 
     main = "Total Liabilities")
+write.csv(liabilities_state_local, "liabilities_state_local.csv")
 ```
 
 # Total Liabilities By Type:  Bonds, Loans, Notes, Leases, Pensions, OPEB and All Other
@@ -111,7 +110,7 @@ sum(liabilities$net_pension_liability)
 sum(liabilities$leases)
 sum(liabilities$net_opeb_liability)
 sum(liabilities$notes_outstanding)
-other <- 7022788313944 - 2457887263192- 89172550650- 52877771988-96461495003-1671845182218- 1270269047952
+other_type <- 7022788313944 - 2457887263192- 89172550650- 52877771988-96461495003-1671845182218- 1270269047952
 
 label2 <- c("bonds_outstanding", "loans_outstanding", "net_pension_liability", "leases", "net_opeb_liability", "other", "notes_outstanding")
 value2 <- c(2457887263192,      89172550650,         1671845182218,          52877771988, 1270269047952, 1384275002941, 96461495003)
@@ -119,11 +118,11 @@ percent2 <- round(value2/sum(value2)*100,1)
 label2 <- paste(label2, percent2)
 label2 <- paste(label2, "%", sep="")
 
-pie2 <- data.frame(label2, value2)
+liabilities_type <- data.frame(label2, value2)
 
 pie(value2, labels = label2, 
     main = "Total Liabilities by type")
 
-write.csv(pie2, "pie2.csv")
+write.csv(liabilities_type, "liabilities_type.csv")
 ```
 
