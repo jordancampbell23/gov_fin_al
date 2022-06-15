@@ -55,7 +55,7 @@ states_51 <- rbind(states_47, states_4) %>% select(-state) %>%
   mutate(state = str_remove(state, "State of "),
         state = str_remove(state, "Commonwealth of "),
         state = str_remove(state, "Government of the "))
-        
+saveRDS(states_51, "states_51.RDS")        
 ```
 
 # Population data from Census
