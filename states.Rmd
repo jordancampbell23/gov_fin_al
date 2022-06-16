@@ -77,6 +77,38 @@ states <- left_join(states_51, population) %>%
 write.csv(states, "states.csv")
 ```
 
+```{r}
+library(viridis)
+top10_liabilities_rev_ratio <- states %>% arrange(desc(lib_rev_ratio)) %>% slice(1:10)
+  top10_liabilities_rev_ratio
+  
+region <- data.frame(state.name, state.region) %>% rename(state = state.name)
+
+
+states %>% left_join(region) %>% 
+  ggplot(aes(population, lib_rev_ratio)) +
+  geom_point(aes(size = population, color = state.region), alpha = .8) +
+  
+    # add lines 
+  geom_hline(yintercept = round(mean(states$lib_rev_ratio)),
+             linetype = "dashed", color = "gray", size = .5) +
+    annotate(geom = "text", x = 700000, y = 85, label = paste("Mean = ", round(mean(states$lib_rev_ratio)))) +
+  
+    
+  scale_x_log10() + 
+  scale_fill_viridis(discrete=TRUE, guide=FALSE, option="A") +
+  #scale_color_viridis(option = "H") +
+  labs(
+    x = "Population (log scale)",
+    y = "Ratios",
+    title = "Ratios of Liabilities to Revenue",
+    subtitle = "States Government") +
+  guides(size = FALSE) +
+  theme_minimal() 
+
+  
+```
+
 
 
 

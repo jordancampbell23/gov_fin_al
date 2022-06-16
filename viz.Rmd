@@ -1,0 +1,150 @@
+---
+title: "viz"
+output: html_document
+date: '2022-06-16'
+---
+
+```{r setup, include=FALSE, warning=FALSE, message=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning=FALSE, message=FALSE)
+library(ggrepel)
+library(ggplot2)
+library(dplyr)
+library(readr)
+library(forcats)
+options(scipen = 999)
+```
+
+# State
+
+```{r}
+states <- read_csv("states.csv")
+
+#data
+topstates_liabilities <- states %>% arrange(desc(lib_rev_ratio)) %>% slice(1:4)
+bottomstate_liabilities <- states %>% arrange(lib_rev_ratio) %>% slice(1:5)
+
+
+topstates_liabilities %>% rbind(bottomstate_liabilities) %>% 
+  mutate(state = fct_reorder(state, lib_rev_ratio)) %>% 
+  
+#layer 1
+    ggplot(aes(state, lib_rev_ratio)) +
+  geom_segment(aes(x = state, xend = state, y = 0, yend = lib_rev_ratio), color = "grey") +
+  geom_point(aes(state, lib_rev_ratio), color = "orange", size = 7) +
+  
+#layer2 
+  geom_text(aes(label = round(lib_rev_ratio)), color = "white", size = 3) +
+  
+  
+  # base
+  geom_hline(yintercept = round(mean(states$lib_rev_ratio)),
+             linetype = "dashed", color = "#a63e37", size = .3) +
+  annotate(geom = "text", x = 1, y = 100, label = paste("Mean"), color = "#a63e37") +
+  
+    geom_hline(yintercept = round(median(states$lib_rev_ratio)),
+             linetype = "dashed", color = "#377da6", size = .3) +
+    annotate(geom = "text", x = 1, y = 60, label = paste("Median"), color = "#377da6") +
+  
+  
+  #theme
+  theme_minimal() +
+  labs(
+    x = "",
+    y = "Ratio",
+    title = "States governments with lowest and highest ratios of liabilities to revenue",
+    subtitle = "",
+    caption = "Note: Mean and median are values of all 50 states and DC")  +
+  theme(axis.text.x = element_text(hjust = 0.5, vjust = 0.5)) 
+
+```
+
+# Counties
+
+```{r}
+library(viridis)
+#counties
+counties <- read_csv("counties.csv") %>% 
+  filter(lib_rev_ratio != Inf & state != "Puerto Rico")
+
+counties %>% 
+  arrange(desc(lib_rev_ratio)) %>% slice(1:5) -> d 
+
+
+counties %>% 
+  filter(lib_rev_ratio != Inf & state != "Puerto Rico") %>% 
+  ggplot(aes(population, lib_rev_ratio)) +
+  geom_point(aes(size = population), color = "gray", alpha = .3) +
+  
+    # add lines 
+  geom_hline(yintercept = round(mean(counties$lib_rev_ratio)),
+             linetype = "dashed", color = "#a63e37", size = .5) +
+    annotate(geom = "text", x = 5000000, y = 60, label = paste("Mean = ", round(mean(counties$lib_rev_ratio)))) +
+  
+  # top ones
+  geom_point(aes(population, lib_rev_ratio), 
+             data = d,
+             color = "#a63e37") +
+  
+    geom_text_repel(aes(label = name), data = d,
+                    nudge_y = 0.1, nudge_x = 0.1, segment.curvature = -0.1, color = "#a63e37") +
+  
+  
+  scale_x_log10() + 
+  scale_fill_viridis(discrete=TRUE, guide=FALSE, option="A") +
+  #scale_color_viridis(option = "H") +
+  labs(
+    x = "Population (log scale)",
+    y = "Ratio",
+    title = "Ratios of Liabilities to Revenue",
+    subtitle = "Counties", 
+    caption = "Note: Excluding Puerto Rico") +
+  guides(size = FALSE) +
+  theme_minimal() 
+
+```
+
+
+
+# Cities 
+```{r}
+cities <- read_csv("cities.csv")
+
+region <- data.frame(state.name, state.region) %>% rename(state = state.name)
+
+top_liab_rev_ratio <- cities %>% arrange(desc(lib_rev_ratio)) %>% slice(1:4)
+
+bottom_liab_ratio <- cities %>% arrange(lib_rev_ratio) %>% slice(1:4)
+
+cities %>% left_join(region) %>% 
+  ggplot(aes(population, lib_rev_ratio)) +
+  geom_point(aes(size = population, color = state.region), alpha = .5) +
+  
+    # add lines 
+  geom_hline(yintercept = round(mean(cities$lib_rev_ratio)),
+             linetype = "dashed", color = "gray", size = .5) +
+    annotate(geom = "text", x = 6000000, y = 200, label = paste("Mean = ", round(mean(cities$lib_rev_ratio)))) +
+  
+  # top 4
+  geom_text_repel(aes(label = city),
+                  data = top_liab_rev_ratio, 
+                  nudge_y = 0.1, nudge_x = 0.15, segment.curvature = -0.1) +
+  
+  # bottom 4
+  geom_text_repel(aes(label = city), 
+                  data = bottom_liab_ratio,
+                  nudge_y = 0.1, nudge_x = 0.1, segment.curvature = -0.1) +
+  
+    
+  scale_x_log10() +
+  scale_fill_viridis(discrete=TRUE, guide=FALSE, option="A") +
+  theme_minimal() +
+  labs(
+    x = "Population (log scale)",
+    y = "Ratio",
+    title = "Ratios of Liabilities to Revenue",
+    subtitle = "Top 100 Cities") +
+ guides(size = FALSE, color = guide_legend("Region")) +
+  theme(legend.position = "bottom") 
+
+```
+

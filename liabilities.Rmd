@@ -78,7 +78,7 @@ others_state_local <- (tot - states - cities_towns - counties - special_district
 
 
 ```{r}
-label_state_local <- c("States", "Cities and Towns", "Counties", "Special Districts", "School Districts", "All Other")
+label_state_local <- c("States", "Cities and Towns", "Counties", "Special Districts", "Education", "All Other")
 
 liabilities_state_local <- data.frame(label_state_local)
 
@@ -90,22 +90,20 @@ write.csv(liabilities_state_local, "liabilities_state_local.csv")
 # Total Liabilities By Type:  Bonds, Loans, Notes, Leases, Pensions, OPEB and All Other
 ```{r}
 liabilities <- acfrs %>% 
-  select(total_liabilities, bonds_outstanding, loans_outstanding, leases, notes_outstanding, net_pension_liability, net_opeb_liability) %>% 
-  mutate(others = total_liabilities - bonds_outstanding - loans_outstanding - leases - notes_outstanding - net_pension_liability - net_opeb_liability) 
-  #mutate(across(all_of(.), .fns = as.numeric()))
-  #summarise(across(all_of(.), .fns = sum()))
-            
+  select(total_liabilities, bonds_outstanding, loans_outstanding, leases, notes_outstanding, net_pension_liability, net_opeb_liability) 
 
-label_liabilities_type <- c("Bonds", "Loans", "Pensions", "Leases", "Other Post-Employment Benefits", "Notes")
+
+label_liabilities_type <- c("Bonds and Notes", "Loans", "Pensions", "Leases", "Other Post-Employment Benefits")
 
 liabilities_type <- data.frame(label_liabilities_type)
 
-liabilities_type$value <- unlist(c(sum(liabilities$bonds_outstanding),
-                                    sum(liabilities$loans_outstanding),
-                                    sum(liabilities$net_pension_liability),
-                                    sum(liabilities$leases),
-                                    sum(liabilities$net_opeb_liability),
-                                    sum(liabilities$notes_outstanding)))
+liabilities_type$value <- unlist(c(
+                        sum(liabilities$bonds_outstanding) + sum(liabilities$notes_outstanding),
+                        sum(liabilities$loans_outstanding),
+                        sum(liabilities$net_pension_liability),
+                        sum(liabilities$leases),
+                        sum(liabilities$net_opeb_liability)
+                                    ))
 
 liabilities_type <- liabilities_type %>% 
   add_row(label_liabilities_type = "All Other",

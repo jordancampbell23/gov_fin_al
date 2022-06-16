@@ -63,7 +63,6 @@ cities <- left_join(cities_acfrs_pop_formap, top100_cities_latlong) %>%
         
         lat = ifelse(city == "Worcester", 42.27, lat),
         long = ifelse(city == "Worcester", -71.81, long))
-      
 
 ```
 
@@ -72,5 +71,6 @@ cities <- left_join(cities_acfrs_pop_formap, top100_cities_latlong) %>%
 
 write.csv(cities, "cities.csv")
 ```
+
 
 
