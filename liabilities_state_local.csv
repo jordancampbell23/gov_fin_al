@@ -1,7 +1,7 @@
-"","label","value"
-"1","states 36%",2530983274594
-"2","cities_towns 17.6%",1239179537814
-"3","counties 8.4%",591455603771
-"4","special_district 16.1%",1130012238813
-"5","school_district 16.7%",1175789650248
-"6","others 5.1%",355368008704
+"","label_state_local","value"
+"1","States",2530983274594
+"2","Cities and Towns",1239179537814
+"3","Counties",591455603771
+"4","Special Districts",1130012238813
+"5","School Districts",1175789650248
+"6","All Other",355368008704

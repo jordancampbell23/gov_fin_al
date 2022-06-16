@@ -10,14 +10,12 @@ library(tidyverse)
 options(scipen = 999)
 ```
 
-
+# Liabilities_state_local
 
 ```{r}
-
 acfrs <- readRDS("data/data_from_dbsite.RDS")
 
 tot <- sum(acfrs$total_liabilities)
-
 school_district <- acfrs %>% filter(category %in% c("School District", "Community College District")) %>%  # NOT including General Purpose, Charter School, Special District, Public Higher Education
   summarise(sum(total_liabilities))
 
@@ -25,18 +23,17 @@ special_district <- acfrs %>% filter(category == "Special District") %>%
   summarise(sum(total_liabilities))
 ```
 
-Combined county/ city governments (Counties that are also cities)
-
-San Francisco, CA
-Jacksonville, FL and Duval County, FL
-Nashville, TN and Davidson County, TN
-Denver, CO
-Philadelphia, PA
-Indianapolis-Marion County, Indiana
-Louisville-Jefferson County, Kentucky
-
 ```{r}
-# Problem: To avoid double counting counties that are already counted as cities, need to removing counties that are cites 
+# Problem: To avoid double counting counties that are already counted as cities, need to removing counties that are cites: 
+# Combined county/ city governments (Counties that are also cities)
+# 
+# San Francisco, CA
+# Jacksonville, FL and Duval County, FL
+# Nashville, TN and Davidson County, TN
+# Denver, CO
+# Philadelphia, PA
+# Indianapolis-Marion County, Indiana
+# Louisville-Jefferson County, Kentucky
 
 skip_counties <- readRDS("data/acfrs_county_parish_borough.RDS") %>% 
       select(state.abb, county, total_liabilities) %>%   
@@ -49,7 +46,6 @@ skip_counties <- readRDS("data/acfrs_county_parish_borough.RDS") %>%
   filter(state == "KY" & county == "jefferson county")
 
 # remove from county list of all county, parish, borough in ACFRs data
-
 acfrs_county_parish_borough <- readRDS("data/acfrs_county_parish_borough.RDS") %>% 
 select(state.abb, county, total_liabilities) %>% 
   rename(state = state.abb) %>% setdiff(skip_counties) %>% select(-county)
@@ -75,23 +71,19 @@ cities_towns <- readRDS("data/acfrs_city_pop_added_char.RDS") %>%
 # State
 states <- readRDS("states_51.RDS") %>% select(state, total_liabilities) %>% 
   summarise(sum(total_liabilities))
+
+#Other
+others_state_local <- (tot - states - cities_towns - counties - special_district - school_district )
 ```
 
-# Generate chart 1
+
 ```{r}
+label_state_local <- c("States", "Cities and Towns", "Counties", "Special Districts", "School Districts", "All Other")
 
-others_state_local <- (tot - states - cities_towns - counties - special_district - school_district )
+liabilities_state_local <- data.frame(label_state_local)
 
-label <- c("states", "cities_towns", "counties", "special_district", "school_district", "others")
-value <- c(2530983274594, 1239179537814, 591455603771, 1130012238813, 1175789650248, 355368008704)
-percent <- round(value/sum(value)*100,1)
-label <- paste(label, percent)
-label <- paste(label, "%", sep="")
+liabilities_state_local$value <- unlist(c(states, cities_towns, counties, special_district, school_district, others_state_local))
 
-liabilities_state_local <- data.frame(label, value)
-
-pie(value, labels = label, 
-    main = "Total Liabilities")
 write.csv(liabilities_state_local, "liabilities_state_local.csv")
 ```
 
@@ -103,25 +95,21 @@ liabilities <- acfrs %>%
   #mutate(across(all_of(.), .fns = as.numeric()))
   #summarise(across(all_of(.), .fns = sum()))
             
-sum(liabilities$total_liabilities) # 7022788313944
-sum(liabilities$bonds_outstanding)
-sum(liabilities$loans_outstanding)
-sum(liabilities$net_pension_liability)
-sum(liabilities$leases)
-sum(liabilities$net_opeb_liability)
-sum(liabilities$notes_outstanding)
-other_type <- 7022788313944 - 2457887263192- 89172550650- 52877771988-96461495003-1671845182218- 1270269047952
 
-label2 <- c("bonds_outstanding", "loans_outstanding", "net_pension_liability", "leases", "net_opeb_liability", "other", "notes_outstanding")
-value2 <- c(2457887263192,      89172550650,         1671845182218,          52877771988, 1270269047952, 1384275002941, 96461495003)
-percent2 <- round(value2/sum(value2)*100,1)
-label2 <- paste(label2, percent2)
-label2 <- paste(label2, "%", sep="")
+label_liabilities_type <- c("Bonds", "Loans", "Pensions", "Leases", "Other Post-Employment Benefits", "Notes")
 
-liabilities_type <- data.frame(label2, value2)
+liabilities_type <- data.frame(label_liabilities_type)
 
-pie(value2, labels = label2, 
-    main = "Total Liabilities by type")
+liabilities_type$value <- unlist(c(sum(liabilities$bonds_outstanding),
+                                    sum(liabilities$loans_outstanding),
+                                    sum(liabilities$net_pension_liability),
+                                    sum(liabilities$leases),
+                                    sum(liabilities$net_opeb_liability),
+                                    sum(liabilities$notes_outstanding)))
+
+liabilities_type <- liabilities_type %>% 
+  add_row(label_liabilities_type = "All Other",
+          value = sum(liabilities$total_liabilities) - sum(liabilities_type$value))
 
 write.csv(liabilities_type, "liabilities_type.csv")
 ```
